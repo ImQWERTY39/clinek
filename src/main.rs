@@ -1,8 +1,8 @@
 use crossterm::{
     cursor,
     event::{poll, Event, KeyCode, KeyEvent},
-    execute, queue,
-    style::{Color, PrintStyledContent, Stylize},
+    execute,
+    style::{Color, PrintStyledContent, StyledContent, Stylize},
     terminal::{Clear, ClearType},
 };
 use crossterm::{event, terminal};
@@ -116,9 +116,7 @@ fn main() {
             &mut stdout,
             snake.y,
             snake.x,
-            snake.get_char(),
-            Color::DarkGreen,
-            Color::Reset,
+            snake.get_char().on(Color::Reset).with(Color::Green),
         );
 
         for val in apples.iter_mut() {
@@ -127,7 +125,12 @@ fn main() {
                 *val = Apple::new_random(window_width, window_height);
             }
 
-            paint_pixel(&mut stdout, val.y, val.x, '@', Color::Red, Color::Reset);
+            paint_pixel(
+                &mut stdout,
+                val.y,
+                val.x,
+                '@'.on(Color::Reset).with(Color::Red),
+            );
         }
 
         thread::sleep(snake.get_wait_time());
@@ -145,18 +148,6 @@ fn main() {
     println!("Your score was: {}", score);
 }
 
-fn paint_pixel(
-    stdout: &mut std::io::Stdout,
-    row: u16,
-    col: u16,
-    symbol: char,
-    fg: Color,
-    bg: Color,
-) {
-    execute!(
-        stdout,
-        cursor::MoveTo(col, row),
-        PrintStyledContent(symbol.on(bg).with(fg).bold())
-    )
-    .unwrap();
+fn paint_pixel(stdout: &mut std::io::Stdout, row: u16, col: u16, symbol: StyledContent<char>) {
+    execute!(stdout, cursor::MoveTo(col, row), PrintStyledContent(symbol)).unwrap();
 }
